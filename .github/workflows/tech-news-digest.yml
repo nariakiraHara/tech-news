@@ -1,0 +1,46 @@
+name: Tech News Digest to Slack (manual)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm i rss-parser
+
+      - name: Run digest script and post to Slack
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+          # 好みで増やしてOK（まずは少なめ推奨）
+          FEEDS: |
+            https://react.dev/rss.xml
+            https://nextjs.org/feed.xml
+            https://openai.com/blog/rss.xml
+            https://www.anthropic.com/news/rss.xml
+            https://vercel.com/changelog/rss.xml
+            https://zenn.dev/topics/design/feed
+            https://zenn.dev/topics/architecture/feed
+            https://hnrss.org/newest?q=web%20performance
+            https://hnrss.org/newest?q=frontend
+            https://news.ycombinator.com/rss
+
+
+          MODEL: gpt-4.1-mini
+          HOURS_LOOKBACK: "72"
+          MAX_ITEMS_PER_FEED: "15"
+
+        run: node .github/scripts/tech-news-digest.mjs
