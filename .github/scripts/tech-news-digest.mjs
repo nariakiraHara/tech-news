@@ -185,4 +185,5 @@ try {
 } finally {
   // TLSSocket を解放してプロセスを終わらせる
   await undiciAgent.close();
+  setImmediate(() => process.exit(0));
 }
