@@ -1,6 +1,8 @@
 name: Tech News Digest to Slack (manual)
 
 on:
+  schedule:
+    - cron: '0 1 * * 1,3,5'  # 毎週月水金の10時（JST）= 1時（UTC）
   workflow_dispatch: {}
 
 jobs:
