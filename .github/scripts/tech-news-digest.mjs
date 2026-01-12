@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import Parser from "rss-parser";
+import { Agent, setGlobalDispatcher } from "undici";
 
 // 👇 ローカル実行時だけ dotenv を読む
 if (!process.env.GITHUB_ACTIONS) {
@@ -25,6 +26,13 @@ const {
 
 if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY");
 if (!SLACK_WEBHOOK_URL) throw new Error("Missing SLACK_WEBHOOK_URL");
+
+const undiciAgent = new Agent({
+  // 0 はダメなことがあるので 1ms にする
+  keepAliveTimeout: 1,
+  keepAliveMaxTimeout: 1,
+});
+setGlobalDispatcher(undiciAgent);
 
 const feeds = FEEDS.split("\n").map((s) => s.trim()).filter(Boolean);
 if (feeds.length === 0) throw new Error("FEEDS is empty");
@@ -102,7 +110,7 @@ const prompt = `
 # 採点ルール（合計10点）
 - Impact(0-4): 影響範囲の広さ
 - Urgency(0-3): 今すぐ確認/対応が必要か
-- Relevance(0-2): React/Next/AI/新規事業にどれだけ直結するか
+- Relevance(0-2): React/Next/AI/新規事業にどれだけ直結するかまた生成AIのハックに役立つか
 - Credibility(0-1): 公式/一次情報/信頼性
 
 # 制約
@@ -166,10 +174,15 @@ async function postToSlack(message) {
   });
 }
 
-const summary = uniq.length
-  ? await callOpenAI()
-  : "（ニュース候補が取得できませんでした）";
+try {
+  const summary = uniq.length
+    ? await callOpenAI()
+    : "（ニュース候補が取得できませんでした）";
 
 
-await postToSlack(`🧪 *Tech News*\n\n${summary}`);
-console.log("OK");
+  await postToSlack(`🧪 *Tech News*\n\n${summary}`);
+  console.log("OK");
+} finally {
+  // TLSSocket を解放してプロセスを終わらせる
+  await undiciAgent.close();
+}

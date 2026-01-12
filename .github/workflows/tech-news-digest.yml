@@ -31,7 +31,6 @@ jobs:
             https://nextjs.org/feed.xml
             https://openai.com/blog/rss.xml
             https://www.anthropic.com/news/rss.xml
-            https://vercel.com/changelog/rss.xml
             https://zenn.dev/topics/design/feed
             https://zenn.dev/topics/architecture/feed
             https://hnrss.org/newest?q=web%20performance
