@@ -146,7 +146,6 @@ async function callOpenAI() {
   });
 
   const data = await res.json();
-	console.log(data)
 
   let text = "";
   for (const out of data.output ?? []) {
@@ -171,7 +170,6 @@ const summary = uniq.length
   ? await callOpenAI()
   : "（ニュース候補が取得できませんでした）";
 
-console.log("Summary:", summary);
 
-await postToSlack(`🧪 *Tech News｜ローカルテスト*\n\n${summary}`);
+await postToSlack(`🧪 *Tech News*\n\n${summary}`);
 console.log("OK");
